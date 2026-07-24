@@ -8,8 +8,7 @@
     "max_retries": 3
   },
   "performance": {
-    "use_approximate_search": false,
-    "threads": 4
+    "threads": 8
   },
   "output": {
     "export_obj": false

@@ -15,7 +15,6 @@ struct AlgorithmConfig {
 };
 
 struct PerformanceConfig {
-    bool use_approximate_search = false;
     int threads = 4;
     
     void loadFromJson(const nlohmann::json& j);

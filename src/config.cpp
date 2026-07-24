@@ -27,7 +27,6 @@ void AlgorithmConfig::loadFromJson(const json& j) {
 }
 
 void PerformanceConfig::loadFromJson(const json& j) {
-    load_or_keep(use_approximate_search, j, "use_approximate_search");
     load_or_keep(threads, j, "threads");
 }
 

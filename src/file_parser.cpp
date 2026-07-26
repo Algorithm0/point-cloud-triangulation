@@ -3,6 +3,8 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+#include <iomanip>
+#include <unordered_map>
 
 PointCloud FileParser::readXYZ(const std::string& filename) {
     PointCloud points;
@@ -57,6 +59,7 @@ void FileParser::writeMesh(const std::string& filename,
     
     for (size_t i = 0; i < points.size(); i++) {
         file << points[i].node_id << ", "
+             << std::defaultfloat << std::setprecision(10)
              << points[i].x << ", "
              << points[i].y << ", "
              << points[i].z << "\n";
@@ -66,9 +69,9 @@ void FileParser::writeMesh(const std::string& filename,
     
     for (size_t i = 0; i < triangles.size(); i++) {
         file << (i + 1) << ", "
-             << points[triangles[i].v1].node_id << ", "
-             << points[triangles[i].v2].node_id << ", "
-             << points[triangles[i].v3].node_id << "\n";
+             << triangles[i].v1 << ", "
+             << triangles[i].v2 << ", "
+             << triangles[i].v3 << "\n";
     }
     
     std::cout << "Saved mesh with " << points.size() << " points and " 
@@ -111,4 +114,37 @@ bool FileParser::parsePointLine(const std::string& line,
     z = values[3];
     
     return true;
+}
+
+void FileParser::writeOBJ(const std::string& filename, const PointCloud& unique_points, const TriangleMesh& triangles) const {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        throw std::runtime_error("Cannot open output OBJ file: " + filename);
+    }
+
+    std::unordered_map<int, size_t> id_to_obj_idx;
+    for (size_t i = 0; i < unique_points.size(); ++i) {
+        id_to_obj_idx[unique_points[i].node_id] = i + 1;
+    }
+
+    for (const auto& p : unique_points) {
+        file << "v " << p.x << " " << p.y << " " << p.z << "\n";
+    }
+
+    for (const auto& p : unique_points) {
+        file << "vn " << p.nx << " " << p.ny << " " << p.nz << "\n";
+    }
+
+    for (const auto& t : triangles) {
+        size_t idx1 = id_to_obj_idx[t.v1];
+        size_t idx2 = id_to_obj_idx[t.v2];
+        size_t idx3 = id_to_obj_idx[t.v3];
+        
+        file << "f " << idx1 << "//" << idx1 << " " 
+                   << idx2 << "//" << idx2 << " " 
+                   << idx3 << "//" << idx3 << "\n";
+    }
+
+    std::cout << "Saved OBJ mesh with " << unique_points.size() << " vertices and " 
+              << triangles.size() << " faces to " << filename << std::endl;
 }

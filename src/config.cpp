@@ -20,7 +20,6 @@ void load_or_keep(T& value, const json& obj, const std::string& key) {
 void AlgorithmConfig::loadFromJson(const json& j) {
     load_or_keep(radius_multiplier, j, "radius_multiplier");
     load_or_keep(pca_neighbors, j, "pca_neighbors");
-    load_or_keep(min_angle_degrees, j, "min_angle_degrees");
     load_or_keep(max_edge_multiplier, j, "max_edge_multiplier");
     load_or_keep(duplicate_tolerance, j, "duplicate_tolerance");
     load_or_keep(max_retries, j, "max_retries");

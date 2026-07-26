@@ -6,7 +6,6 @@
 struct AlgorithmConfig {
     double radius_multiplier = 2.5;
     int pca_neighbors = 25;
-    double min_angle_degrees = 15.0;
     double max_edge_multiplier = 2.5;
     double duplicate_tolerance = 1e-6;
     int max_retries = 3;

@@ -9,6 +9,7 @@ public:
     void writeMesh(const std::string& filename, 
                    const PointCloud& points, 
                    const TriangleMesh& triangles);
+    void writeOBJ(const std::string& filename, const PointCloud& unique_points, const TriangleMesh& triangles) const;
     
 private:
     bool isComment(const std::string& line);

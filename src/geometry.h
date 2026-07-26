@@ -1,37 +1,104 @@
 #pragma once
 
 #include <vector>
+#include <cmath>
+#include <algorithm>
+#include <cstddef>
 
 struct Point {
-    double x;
-    double y;
-    double z;
-    int node_id;
+    double x, y, z;
+    double nx, ny, nz;
+    size_t node_id;
 
-    double nx = 0.0;
-    double ny = 0.0;
-    double nz = 0.0;
-    
-    Point() : x(0), y(0), z(0), node_id(0) {}
-    Point(double x_, double y_, double z_, int id) 
-        : x(x_), y(y_), z(z_), node_id(id) {}
-};
-
-struct Triangle {
-    size_t v1;
-    size_t v2;
-    size_t v3;
-    
-    Triangle() : v1(0), v2(0), v3(0) {}
-    Triangle(size_t a, size_t b, size_t c) : v1(a), v2(b), v3(c) {}
-};
-
-struct Vector3 {
-    double x;
-    double y; 
-    double z;
+    Point(double x = 0.0, double y = 0.0, double z = 0.0, size_t id = 0)
+        : x(x), y(y), z(z), nx(0.0), ny(0.0), nz(0.0), node_id(id) {}
 };
 
 using PointCloud = std::vector<Point>;
 
+struct Triangle {
+    size_t v1 = 0;
+    size_t v2 = 0;
+    size_t v3 = 0;
+
+    Triangle() = default;
+
+    Triangle(size_t a, size_t b, size_t c)
+        : v1(a), v2(b), v3(c) {}
+};
+
 using TriangleMesh = std::vector<Triangle>;
+
+struct Vector3 {
+    double x, y, z;
+    Vector3(double x = 0.0, double y = 0.0, double z = 0.0) : x(x), y(y), z(z) {}
+};
+
+inline Vector3 operator-(const Point& a, const Point& b) {
+    return Vector3(a.x - b.x, a.y - b.y, a.z - b.z);
+}
+
+inline Vector3 operator+(const Vector3& a, const Vector3& b) {
+    return Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
+}
+
+inline Vector3 operator-(const Vector3& a, const Vector3& b) {
+    return Vector3(a.x - b.x, a.y - b.y, a.z - b.z);
+}
+
+inline Vector3 operator*(const Vector3& v, double scalar) {
+    return Vector3(v.x * scalar, v.y * scalar, v.z * scalar);
+}
+
+inline Vector3 operator*(double scalar, const Vector3& v) {
+    return Vector3(v.x * scalar, v.y * scalar, v.z * scalar);
+}
+
+inline Vector3 operator/(const Vector3& v, double scalar) {
+    return Vector3(v.x / scalar, v.y / scalar, v.z / scalar);
+}
+
+inline Point operator+(const Point& p, const Vector3& v) {
+    return Point(p.x + v.x, p.y + v.y, p.z + v.z, p.node_id);
+}
+
+inline double dot(const Vector3& a, const Vector3& b) {
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+inline Vector3 cross(const Vector3& a, const Vector3& b) {
+    return Vector3(
+        a.y * b.z - a.z * b.y,
+        a.z * b.x - a.x * b.z,
+        a.x * b.y - a.y * b.x
+    );
+}
+
+inline Vector3 operator-(const Vector3& v) {
+    return Vector3(-v.x, -v.y, -v.z);
+}
+
+inline double norm(const Vector3& v) {
+    return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+
+inline double normSquared(const Vector3& v) {
+    return v.x * v.x + v.y * v.y + v.z * v.z;
+}
+
+inline Vector3 normalize(const Vector3& v) {
+    double len = norm(v);
+    if (len < 1e-12) {
+        return Vector3(0.0, 0.0, 0.0);
+    }
+    return v / len;
+}
+
+inline double distanceSquared(const Point& a, const Point& b) {
+    Vector3 d = a - b;
+    return normSquared(d);
+}
+
+inline double distance(const Point& a, const Point& b) {
+    return std::sqrt(distanceSquared(a, b));
+}

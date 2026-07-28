@@ -14,7 +14,7 @@ void computeEigenVectors3x3(const double A[3][3], double eigenvalues[3], double 
     eigenvectors[1][0] = 0; eigenvectors[1][1] = 1; eigenvectors[1][2] = 0;
     eigenvectors[2][0] = 0; eigenvectors[2][1] = 0; eigenvectors[2][2] = 1;
 
-    for (int iter = 0; iter < 10; ++iter) {
+    for (int iter = 0; iter < 50; ++iter) {
         int p = 0, q = 1;
         double max_val = std::abs(M[0][1]);
         

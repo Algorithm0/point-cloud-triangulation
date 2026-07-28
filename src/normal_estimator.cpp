@@ -6,7 +6,7 @@
 #include <omp.h>
 
 void NormalEstimator::estimate(PointCloud& points, const KDTree& kd_tree,
-                               int k_neighbors, int num_threads) {
+        int k_neighbors, int num_threads) {
     if (points.empty() || k_neighbors < 3) {
         std::cerr << "Warning: Not enough points or neighbors for PCA." << std::endl;
         return;
@@ -76,7 +76,8 @@ void NormalEstimator::estimate(PointCloud& points, const KDTree& kd_tree,
 
             double eigenvalues[3];
             double eigenvectors[3][3];
-            computeEigenVectors3x3(C, eigenvalues, eigenvectors);
+
+            computeEigenVectors3x3(C, eigenvalues, eigenvectors); 
 
             int minIdx = 0;
             if (eigenvalues[1] < eigenvalues[minIdx]) minIdx = 1;

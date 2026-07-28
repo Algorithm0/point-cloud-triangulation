@@ -102,3 +102,14 @@ inline double distanceSquared(const Point& a, const Point& b) {
 inline double distance(const Point& a, const Point& b) {
     return std::sqrt(distanceSquared(a, b));
 }
+
+inline double distanceSquared(const Point& a, const Vector3& b) {
+    double dx = a.x - b.x;
+    double dy = a.y - b.y;
+    double dz = a.z - b.z;
+    return dx * dx + dy * dy + dz * dz;
+}
+
+inline double distanceSquared(const Vector3& a, const Point& b) {
+    return distanceSquared(b, a);
+}

@@ -21,6 +21,7 @@ add_executable(triangulator
     src/eigen33.cpp
     src/kd_tree.cpp 
     src/normal_estimator.cpp
+    src/ball_pivoting.cpp
 )
 
 find_package(OpenMP)

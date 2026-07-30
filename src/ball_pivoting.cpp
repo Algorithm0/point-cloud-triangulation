@@ -4,12 +4,15 @@
 #include <random>
 #include <unordered_set>
 #include <numeric>
+#include <iomanip>
+#include <limits>
 
 static constexpr double PI = 3.14159265358979323846;
 static constexpr double EPS_COLLINEAR = 1e-12;
 static constexpr double EPS_EMPTY = 1e-6;
 static constexpr double EPS_ANGLE = 1e-6;
 static constexpr double EPS_VEC_LEN = 1e-8;
+static constexpr double SEED_NORMAL_DOT = 0.8; 
 
 inline std::array<size_t, 3> makeCanonicalKey(size_t a, size_t b, size_t c) {
     if (a > b) std::swap(a, b);
@@ -161,45 +164,63 @@ bool BallPivoting::findSeedTriangle(
                 size_t idx_j = neighbors[j];
                 size_t idx_k = neighbors[kk];
 
-                const Point& p1 = points[current_idx];
-                const Point& p2 = points[idx_j];
-                const Point& p3 = points[idx_k];
+                size_t v_a = current_idx;
+                size_t v_b = idx_j;
+                size_t v_c = idx_k;
+                Point pa = points[v_a];
+                Point pb = points[v_b];
+                Point pc = points[v_c];
 
-                if (!isCompatible(p1, p2, p3, max_edge_length)) continue;
-
-                Vector3 center1, center2;
-                if (!computeBallCenters(p1, p2, p3, radius, center1, center2)) {
+                if (std::abs(dot(Vector3(pa.nx, pa.ny, pa.nz), Vector3(pb.nx, pb.ny, pb.nz))) < SEED_NORMAL_DOT) { 
+                    continue;
+                }
+                if (std::abs(dot(Vector3(pa.nx, pa.ny, pa.nz), Vector3(pc.nx, pc.ny, pc.nz))) < SEED_NORMAL_DOT) {
+                    continue;
+                }
+                if (std::abs(dot(Vector3(pb.nx, pb.ny, pb.nz), Vector3(pc.nx, pc.ny, pc.nz))) < SEED_NORMAL_DOT) {
                     continue;
                 }
 
-                Vector3 avg_normal = 
-                    Vector3(p1.nx + p2.nx + p3.nx, p1.ny + p2.ny + p3.ny, p1.nz + p2.nz + p3.nz);
-                Vector3 chosen_center;
-                
+                Vector3 n = cross(Vector3(pb.x, pb.y, pb.z) - Vector3(pa.x, pa.y, pa.z),
+                    Vector3(pc.x, pc.y, pc.z) - Vector3(pa.x, pa.y, pa.z));
+                double n_len_sq = normSquared(n);
+
+                if (n_len_sq < EPS_COLLINEAR) continue;
+                Vector3 n_norm = n * (1.0 / std::sqrt(n_len_sq));
+                Vector3 avg_normal(pa.nx + pb.nx + pc.nx, pa.ny + pb.ny + pc.ny, pa.nz + pb.nz + pc.nz);
                 double avg_normal_sq = normSquared(avg_normal);
+
                 if (avg_normal_sq > EPS_COLLINEAR) {
-                    Vector3 n = cross(p2 - p1, p3 - p1);
-                    double inv_len = 1.0 / std::sqrt(normSquared(n));
-                    Vector3 n_norm = n * inv_len;
-                    double inv_avg = 1.0 / std::sqrt(avg_normal_sq);
-                    avg_normal = avg_normal * inv_avg;
-                    chosen_center = (dot(n_norm, avg_normal) < 0.0) ? center2 : center1;
-                } else {
-                    chosen_center = center1;
+                    Vector3 avg_norm = avg_normal * (1.0 / std::sqrt(avg_normal_sq));
+                    
+                    if (dot(n_norm, avg_norm) < 0.0) {
+                        std::swap(v_b, v_c); 
+                        pb = points[v_b];
+                        pc = points[v_c];
+                        n = cross(Vector3(pb.x, pb.y, pb.z) - Vector3(pa.x, pa.y, pa.z),
+                             Vector3(pc.x, pc.y, pc.z) - Vector3(pa.x, pa.y, pa.z));
+                    }
                 }
 
-                if (!isBallEmpty(kd_tree, points, chosen_center, radius, current_idx, idx_j, idx_k)) continue;
+                Vector3 center1, center2;
+                if (!computeBallCenters(pa, pb, pc, radius, center1, center2)) {
+                    continue;
+                }
 
-                seed = Triangle(current_idx, idx_j, idx_k);
-                
-                Edge e1(current_idx, idx_j, idx_k, chosen_center);
-                Edge e2(idx_j, idx_k, current_idx, chosen_center);
-                Edge e3(idx_k, current_idx, idx_j, chosen_center);
+                Vector3 chosen_center = center1;
+                if (!isBallEmpty(kd_tree, points, chosen_center, radius, v_a, v_b, v_c)) {
+                    continue;
+                }
+
+                seed = Triangle(v_a, v_b, v_c);
+
+                Edge e1(v_a, v_b, v_c, chosen_center);
+                Edge e2(v_b, v_c, v_a, chosen_center);
+                Edge e3(v_c, v_a, v_b, chosen_center);
 
                 front.push_back(e1); front_set.insert(e1);
                 front.push_back(e2); front_set.insert(e2);
                 front.push_back(e3); front_set.insert(e3);
-                
                 return true;
             }
         }
@@ -220,7 +241,8 @@ double BallPivoting::computePivotAngle(
     double len_old = norm(v_old);
     double len_new = norm(v_new);
     
-    if (len_old < EPS_VEC_LEN || len_new < EPS_VEC_LEN) return std::numeric_limits<double>::max();
+    if (len_old < EPS_VEC_LEN || len_new < EPS_VEC_LEN) 
+        return std::numeric_limits<double>::max();
 
     v_old = v_old / len_old;
     v_new = v_new / len_new;
@@ -230,6 +252,18 @@ double BallPivoting::computePivotAngle(
     double angle = std::atan2(sin_theta, cos_theta);
 
     if (angle < 0.0) angle += 2.0 * PI;
+
+    if (angle > 2.0 * PI - 1e-5) {
+        return std::numeric_limits<double>::max(); 
+    }
+
+    if (angle > PI) {
+        angle = 2.0 * PI - angle;
+    }
+
+    if (angle < EPS_ANGLE) {
+        return std::numeric_limits<double>::max();
+    }
 
     return angle;
 }
@@ -263,48 +297,74 @@ size_t BallPivoting::findThirdPoint(
     Vector3 e = normalize(edge_vec);
 
     for (size_t v3 : candidates_buffer) {
-        if (v3 == edge.v1 || v3 == edge.v2 || v3 == edge.opposite_vertex) {
-            continue;
-        }
+        if (v3 == edge.v1 || v3 == edge.v2 || v3 == edge.opposite_vertex) continue;
 
-        const Point& p3 = points[v3];
-        if (!isCompatible(p1, p2, p3, max_edge_length)) {
-            continue;
+        const Point& p3_pt = points[v3];
+        if (!isCompatible(p1, p2, p3_pt, max_edge_length)) continue;
+
+        const Point& p_opp = points[edge.opposite_vertex];
+        Vector3 v1_vec(p1.x, p1.y, p1.z);
+        Vector3 v2_vec(p2.x, p2.y, p2.z);
+        Vector3 v3_vec(p3_pt.x, p3_pt.y, p3_pt.z);
+        Vector3 v_opp_vec(p_opp.x, p_opp.y, p_opp.z);
+
+        Vector3 current_normal = cross(v2_vec - v1_vec, v_opp_vec - v1_vec);
+        double len_norm = norm(current_normal);
+        
+        if (len_norm > 1e-8) {
+            current_normal = current_normal / len_norm;
+            Vector3 cross_v3 = cross(v2_vec - v1_vec, v3_vec - v1_vec);
+
+            if (dot(cross_v3, current_normal) > 1e-6) {
+                continue; 
+            }
         }
 
         auto key = makeCanonicalKey(edge.v1, edge.v2, v3);
-        if (created_triangles.count(key)) {
-            continue;
-        }
+        if (created_triangles.count(key)) continue;
 
         if (get_usage(edge.v1, edge.v2) >= 2 || 
             get_usage(edge.v2, v3) >= 2 || 
-            get_usage(v3, edge.v1) >= 2) 
-        {
-            continue; 
-        }
-
-        Vector3 center1, center2;
-        if (!computeBallCenters(p1, p2, p3, radius, center1, center2)){
+            get_usage(v3, edge.v1) >= 2) {
             continue;
         }
 
-        if (isBallEmpty(kd_tree, points, center1, radius, edge.v1, edge.v2, v3)) {
-            double angle1 = computePivotAngle(e, mid_pt, edge.ball_center, center1);
-            if (angle1 > EPS_ANGLE && angle1 < best_angle) {
-                best_angle = angle1;
-                best_v3 = v3;
-                out_ball_center = center1;
-            }
-        }
+        Vector3 center1, center2;
+        if (!computeBallCenters(p1, p2, p3_pt, radius, center1, center2)) continue;
+
+        bool c1_valid = false, c2_valid = false;
+        double a1 = std::numeric_limits<double>::max();
+        double a2 = std::numeric_limits<double>::max();
         
+        if (isBallEmpty(kd_tree, points, center1, radius, edge.v1, edge.v2, v3)) {
+            c1_valid = true;
+            a1 = computePivotAngle(e, mid_pt, edge.ball_center, center1);
+        }
+
         if (isBallEmpty(kd_tree, points, center2, radius, edge.v1, edge.v2, v3)) {
-            double angle2 = computePivotAngle(e, mid_pt, edge.ball_center, center2);
-            if (angle2 > EPS_ANGLE && angle2 < best_angle) {
-                best_angle = angle2;
-                best_v3 = v3;
-                out_ball_center = center2;
-            }
+            c2_valid = true;
+            a2 = computePivotAngle(e, mid_pt, edge.ball_center, center2);
+        }
+
+        double current_best_a = std::numeric_limits<double>::max();
+        int current_best_choice = 0;
+        Vector3 current_best_center;
+
+        if (c1_valid && a1 > EPS_ANGLE && a1 < current_best_a) {
+            current_best_a = a1;
+            current_best_choice = 1;
+            current_best_center = center1;
+        }
+        if (c2_valid && a2 > EPS_ANGLE && a2 < current_best_a) {
+            current_best_a = a2;
+            current_best_choice = 2;
+            current_best_center = center2;
+        }
+
+        if (current_best_choice != 0 && current_best_a < best_angle) {
+            best_angle = current_best_a;
+            best_v3 = v3;
+            out_ball_center = current_best_center;
         }
     }
     return best_v3;
@@ -314,9 +374,11 @@ void BallPivoting::addTriangle(
     TriangleMesh& mesh, std::deque<Edge>& front, FrontSet& front_set,
     const Edge& current_edge, const Triangle& triangle, const Vector3& ball_center) {
     mesh.push_back(triangle);
-    front_set.erase(current_edge);
-
     auto processNewEdge = [&](const Edge& e) {
+        if ((e.v1 == current_edge.v1 && e.v2 == current_edge.v2) ||
+            (e.v1 == current_edge.v2 && e.v2 == current_edge.v1)) {
+            return;
+        }
         Edge rev(e.v2, e.v1);
         auto it = front_set.find(rev);
         if (it != front_set.end()) {
@@ -328,8 +390,11 @@ void BallPivoting::addTriangle(
         }
     };
 
+    processNewEdge(Edge(triangle.v1, triangle.v2, triangle.v3, ball_center));
     processNewEdge(Edge(triangle.v2, triangle.v3, triangle.v1, ball_center));
     processNewEdge(Edge(triangle.v3, triangle.v1, triangle.v2, ball_center));
+    
+    front_set.erase(current_edge);
 }
 
 TriangleMesh BallPivoting::reconstruct(
@@ -376,7 +441,6 @@ TriangleMesh BallPivoting::reconstruct(
     increment_usage(seed.v3, seed.v1);
 
     std::cout << "BPA: Starting main loop with front size = " << front.size() << std::endl;
-
     while (!front.empty()) {
         Edge current_edge = front.front();
         front.pop_front();
@@ -387,22 +451,16 @@ TriangleMesh BallPivoting::reconstruct(
         size_t v3 = findThirdPoint(points, kd_tree, current_edge, radius, max_edge_length, 
             created_triangles, edge_usage, best_center, candidates_buffer);
 
-        if (v3 != INVALID_INDEX) {
-            created_triangles.insert(makeCanonicalKey(current_edge.v1, current_edge.v2, v3));
+        if (v3 != INVALID_INDEX) {            
+            Triangle new_tri(current_edge.v2, current_edge.v1, v3);
             
-            increment_usage(current_edge.v1, current_edge.v2);
-            increment_usage(current_edge.v2, v3);
-            increment_usage(v3, current_edge.v1);
+            created_triangles.insert(makeCanonicalKey(new_tri.v1, new_tri.v2, new_tri.v3));
+            
+            increment_usage(new_tri.v1, new_tri.v2);
+            increment_usage(new_tri.v2, new_tri.v3);
+            increment_usage(new_tri.v3, new_tri.v1);
 
-            Triangle new_tri(current_edge.v1, current_edge.v2, v3);
             addTriangle(mesh, front, front_set, current_edge, new_tri, best_center);
-        } else {
-            if (current_edge.retry_count < max_retries) {
-                current_edge.retry_count++;
-                front.push_back(current_edge);
-            } else {
-                front_set.erase(current_edge);
-            }
         }
     }
 

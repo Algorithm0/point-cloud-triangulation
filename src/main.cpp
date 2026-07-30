@@ -15,11 +15,11 @@ int main() {
     Config config = Config::loadFromFile("config.json");
 
     FileParser parser;
-    //PointCloud all_points = parser.readXYZ("sphere.xyz");
+    PointCloud all_points = parser.readXYZ("sphere.xyz");
     //PointCloud all_points = parser.readXYZ("sphere-nodes.xyz");
     //PointCloud all_points = parser.readXYZ("saddle-nodes.xyz");
     //PointCloud all_points = parser.readXYZ("barrel-nodes.xyz");
-    PointCloud all_points = parser.readXYZ("input.xyz");
+    //PointCloud all_points = parser.readXYZ("input.xyz");
 
     PointCloud unique_points = Preprocessor::getUniquePoints(all_points, config.algorithm.duplicate_tolerance);
 

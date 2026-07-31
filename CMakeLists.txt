@@ -11,7 +11,14 @@ FetchContent_Declare(
     URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
-FetchContent_MakeAvailable(json)
+
+FetchContent_Declare(
+    cxxopts
+    GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
+    GIT_TAG v3.1.1
+)
+
+FetchContent_MakeAvailable(json cxxopts)
 
 add_executable(triangulator 
     src/main.cpp
@@ -29,7 +36,10 @@ if(OpenMP_CXX_FOUND)
     target_link_libraries(triangulator PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
-target_link_libraries(triangulator PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(triangulator PRIVATE 
+    nlohmann_json::nlohmann_json
+    cxxopts::cxxopts
+)
 
 
 enable_testing()

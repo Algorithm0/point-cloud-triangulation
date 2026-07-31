@@ -57,8 +57,8 @@ PointCloud Preprocessor::getUniquePoints(const PointCloud& points, double tolera
     size_t removed_count = points.size() - unique_points.size();
     if (removed_count > 0) {
         std::cout << "Preprocessing: Found " << removed_count 
-                  << " duplicate points. Algorithm will use " 
-                  << unique_points.size() << " unique points." << std::endl;
+            << " duplicate points. Algorithm will use " 
+            << unique_points.size() << " unique points." << std::endl;
     }
 
     return unique_points;

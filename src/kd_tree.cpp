@@ -76,12 +76,11 @@ void KDTree::searchRecursive(
     const Point& target,
     size_t ignore_index,
     int k,
-    std::priority_queue<std::pair<double, size_t>>& best_neighbors) const 
-{
+    std::priority_queue<std::pair<double, size_t>>& best_neighbors) const {
+
     const Node& node = nodes_[node_idx];
     const Point& p = (*points_)[node.point_idx];
 
-    // Сначала проверяем ignore_index, потом считаем расстояние
     if (node.point_idx != ignore_index) {
         double dist_sq = distanceSquared(target, p);
 
@@ -119,8 +118,8 @@ void KDTree::radiusSearch(
     const Point& target, 
     double radius, 
     size_t ignore_index, 
-    std::vector<size_t>& out_indices) const 
-{
+    std::vector<size_t>& out_indices) const {
+
     out_indices.clear();
     if (!points_ || points_->empty() || nodes_.empty()) return;
 
@@ -165,4 +164,14 @@ void KDTree::radiusSearchRecursive(
             radiusSearchRecursive(second_idx, target, radius_squared, ignore_index, result);
         }
     }
+}
+
+void KDTree::radiusSearch(
+    const Vector3& target, 
+    double radius, 
+    size_t ignore_index, 
+    std::vector<size_t>& out_indices) const {
+        
+    Point center_pt(target.x, target.y, target.z);
+    radiusSearch(center_pt, radius, ignore_index, out_indices);
 }

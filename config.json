@@ -1,7 +1,7 @@
 {
   "algorithm": {
-    "radius_multiplier": 2.0,
-    "pca_neighbors": 25,
+    "radius_multiplier": 1.5,
+    "pca_neighbors": 15,
     "max_edge_multiplier": 2.5,
     "duplicate_tolerance": 1e-6,
     "max_retries": 3
@@ -10,6 +10,6 @@
     "threads": 8
   },
   "output": {
-    "export_obj": false
+    "export_obj": true
   }
-}
+} 

@@ -21,10 +21,15 @@ public:
         size_t ignore_index,
         std::vector<size_t>& out_indices) const;
 
-    // Удобный доступ к точке по индексу
     const Point& point(size_t idx) const {
         return (*points_)[idx];
     }
+
+    void radiusSearch(
+        const Vector3& target, 
+        double radius, 
+        size_t ignore_index, 
+        std::vector<size_t>& out_indices) const; 
 
 private:
     static constexpr size_t INVALID_NODE = std::numeric_limits<size_t>::max();

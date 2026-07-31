@@ -4,9 +4,8 @@
 #include <iostream>
 #include <algorithm>
 #include <iomanip>
-#include <unordered_map>
 
-PointCloud FileParser::readXYZ(const std::string& filename) {
+PointCloud FileParser::readXYZ(const std::string& filename) const {
     PointCloud points;
     std::ifstream file(filename);
     
@@ -29,7 +28,7 @@ PointCloud FileParser::readXYZ(const std::string& filename) {
         
         if (!parsePointLine(line, id, x, y, z)) {
             std::cerr << "Warning: Skipping invalid line " << line_number 
-                      << ": " << line << std::endl;
+                << ": " << line << std::endl;
             continue;
         }
         
@@ -46,8 +45,10 @@ PointCloud FileParser::readXYZ(const std::string& filename) {
 }
 
 void FileParser::writeMesh(const std::string& filename, 
-                          const PointCloud& points, 
-                          const TriangleMesh& triangles) {
+    const PointCloud& all_points,
+    const PointCloud& unique_points, 
+    const TriangleMesh& triangles) const {
+
     std::ofstream file(filename);
     
     if (!file.is_open()) {
@@ -57,28 +58,33 @@ void FileParser::writeMesh(const std::string& filename,
     file << "* N,\tX\tY\tZ\n";
     file << "* Nodes\n";
     
-    for (size_t i = 0; i < points.size(); i++) {
-        file << points[i].node_id << ", "
-             << std::defaultfloat << std::setprecision(10)
-             << points[i].x << ", "
-             << points[i].y << ", "
-             << points[i].z << "\n";
+    for (size_t i = 0; i < all_points.size(); i++) {
+        file << all_points[i].node_id << ", "
+            << std::defaultfloat << std::setprecision(10)
+            << all_points[i].x << ", "
+            << all_points[i].y << ", "
+            << all_points[i].z << "\n";
     }
     
     file << "* Elements\n";
     
     for (size_t i = 0; i < triangles.size(); i++) {
+        int n1 = unique_points[triangles[i].v1].node_id;
+        int n2 = unique_points[triangles[i].v2].node_id;
+        int n3 = unique_points[triangles[i].v3].node_id;
+        
         file << (i + 1) << ", "
-             << triangles[i].v1 << ", "
-             << triangles[i].v2 << ", "
-             << triangles[i].v3 << "\n";
+            << n1 << ", "
+            << n2 << ", "
+            << n3 << "\n";
     }
     
-    std::cout << "Saved mesh with " << points.size() << " points and " 
-              << triangles.size() << " triangles to " << filename << std::endl;
+    std::cout << "Saved mesh with " << all_points.size() << " total points (" 
+        << unique_points.size() << " unique) and " 
+        << triangles.size() << " triangles to " << filename << std::endl;
 }
 
-bool FileParser::isComment(const std::string& line) {
+bool FileParser::isComment(const std::string& line) const {
     size_t start = line.find_first_not_of(" \t");
     if (start == std::string::npos) {
         return true; 
@@ -88,7 +94,8 @@ bool FileParser::isComment(const std::string& line) {
 }
 
 bool FileParser::parsePointLine(const std::string& line, 
-                               int& id, double& x, double& y, double& z) {
+    int& id, double& x, double& y, double& z) const {
+
     std::stringstream ss(line);
     std::string token;
     std::vector<double> values;
@@ -116,15 +123,12 @@ bool FileParser::parsePointLine(const std::string& line,
     return true;
 }
 
-void FileParser::writeOBJ(const std::string& filename, const PointCloud& unique_points, const TriangleMesh& triangles) const {
+void FileParser::writeOBJ(const std::string& filename, const PointCloud& unique_points, 
+    const TriangleMesh& triangles) const {
+
     std::ofstream file(filename);
     if (!file.is_open()) {
         throw std::runtime_error("Cannot open output OBJ file: " + filename);
-    }
-
-    std::unordered_map<int, size_t> id_to_obj_idx;
-    for (size_t i = 0; i < unique_points.size(); ++i) {
-        id_to_obj_idx[unique_points[i].node_id] = i + 1;
     }
 
     for (const auto& p : unique_points) {
@@ -136,15 +140,11 @@ void FileParser::writeOBJ(const std::string& filename, const PointCloud& unique_
     }
 
     for (const auto& t : triangles) {
-        size_t idx1 = id_to_obj_idx[t.v1];
-        size_t idx2 = id_to_obj_idx[t.v2];
-        size_t idx3 = id_to_obj_idx[t.v3];
-        
-        file << "f " << idx1 << "//" << idx1 << " " 
-                   << idx2 << "//" << idx2 << " " 
-                   << idx3 << "//" << idx3 << "\n";
+        file << "f " << (t.v1 + 1) << "//" << (t.v1 + 1) << " " 
+            << (t.v2 + 1) << "//" << (t.v2 + 1) << " " 
+            << (t.v3 + 1) << "//" << (t.v3 + 1) << "\n";
     }
 
     std::cout << "Saved OBJ mesh with " << unique_points.size() << " vertices and " 
-              << triangles.size() << " faces to " << filename << std::endl;
+        << triangles.size() << " faces to " << filename << std::endl;
 }

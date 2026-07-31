@@ -12,7 +12,7 @@ void load_or_keep(T& value, const json& obj, const std::string& key) {
             value = obj[key].get<T>();
         } catch (const json::exception& e) {
             std::cerr << "Warning: Invalid value for '" << key 
-                      << "' in config. Keeping default: " << value << std::endl;
+                << "' in config. Keeping default: " << value << std::endl;
         }
     }
 }
@@ -39,7 +39,7 @@ Config Config::loadFromFile(const std::string& filepath) {
     std::ifstream file(filepath);
     if (!file.is_open()) {
         std::cerr << "Warning: Config file '" << filepath 
-                  << "' not found. Using default values." << std::endl;
+            << "' not found. Using default values." << std::endl;
         return config;
     }
 
@@ -48,7 +48,7 @@ Config Config::loadFromFile(const std::string& filepath) {
         file >> j;
     } catch (const json::exception& e) {
         std::cerr << "Warning: Failed to parse config file '" << filepath 
-                  << "': " << e.what() << ". Using default values." << std::endl;
+            << "': " << e.what() << ". Using default values." << std::endl;
         return config;
     }
 

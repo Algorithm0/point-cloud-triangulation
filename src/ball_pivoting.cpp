@@ -14,13 +14,6 @@ static constexpr double EPS_ANGLE = 1e-6;
 static constexpr double EPS_VEC_LEN = 1e-8;
 static constexpr double SEED_NORMAL_DOT = 0.8; 
 
-inline std::array<size_t, 3> makeCanonicalKey(size_t a, size_t b, size_t c) {
-    if (a > b) std::swap(a, b);
-    if (b > c) std::swap(b, c);
-    if (a > b) std::swap(a, b);
-    return {a, b, c};
-}
-
 double BallPivoting::computeAverageEdgeLength(const PointCloud& points, const KDTree& kd_tree) {
     double total_length = 0.0;
     int count = 0;

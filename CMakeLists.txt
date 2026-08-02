@@ -53,7 +53,7 @@ target_link_libraries(triangulator PRIVATE
 enable_testing()
 add_executable(test_runner 
     tests/unit_tests.cpp 
-    # tests/integration_tests.cpp
+    tests/integration_tests.cpp
 )
 
 target_link_libraries(test_runner PRIVATE 

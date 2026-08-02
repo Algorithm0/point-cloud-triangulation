@@ -18,10 +18,15 @@ FetchContent_Declare(
     GIT_TAG v3.1.1
 )
 
-FetchContent_MakeAvailable(json cxxopts)
+FetchContent_Declare(
+    Catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+    GIT_TAG v3.4.0
+)
 
-add_executable(triangulator 
-    src/main.cpp
+FetchContent_MakeAvailable(json cxxopts Catch2)
+
+add_library(triangulator_core STATIC
     src/file_parser.cpp
     src/config.cpp
     src/preprocessor.cpp
@@ -33,15 +38,27 @@ add_executable(triangulator
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(triangulator PRIVATE OpenMP::OpenMP_CXX)
+    target_link_libraries(triangulator_core PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
+target_link_libraries(triangulator_core PUBLIC nlohmann_json::nlohmann_json)
+
+add_executable(triangulator src/main.cpp)
+
 target_link_libraries(triangulator PRIVATE 
-    nlohmann_json::nlohmann_json
+    triangulator_core 
     cxxopts::cxxopts
 )
 
-
 enable_testing()
-add_executable(test_runner tests/test_placeholder.cpp)
-add_test(NAME PlaceholderTest COMMAND test_runner)
+add_executable(test_runner 
+    tests/unit_tests.cpp 
+    tests/integration_tests.cpp
+)
+
+target_link_libraries(test_runner PRIVATE 
+    Catch2::Catch2WithMain 
+    triangulator_core
+)
+
+add_test(NAME AllTests COMMAND test_runner)

@@ -96,3 +96,10 @@ private:
         const Edge& current_edge, const Triangle& triangle, const Vector3& ball_center
     );
 };
+
+inline std::array<size_t, 3> makeCanonicalKey(size_t a, size_t b, size_t c) {
+    if (a > b) std::swap(a, b);
+    if (b > c) std::swap(b, c);
+    if (a > b) std::swap(a, b);
+    return {a, b, c};
+}

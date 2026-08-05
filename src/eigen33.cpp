@@ -2,6 +2,7 @@
 #include "eigen33.h"
 #include <cmath>
 #include <algorithm>
+#include <numeric>
 
 void computeEigenVectors3x3(const double A[3][3], double eigenvalues[3], double eigenvectors[3][3]) {
     double M[3][3] = {
@@ -25,7 +26,7 @@ void computeEigenVectors3x3(const double A[3][3], double eigenvalues[3], double 
 
         double theta;
         if (M[p][p] == M[q][q]) {
-            theta = M_PI / 4.0;
+            theta = std::numbers::pi / 4.0;
         } else {
             theta = 0.5 * std::atan2(2.0 * M[p][q], M[p][p] - M[q][q]);
         }

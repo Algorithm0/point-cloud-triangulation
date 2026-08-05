@@ -93,10 +93,10 @@ TEST_CASE("BPA reconstructs a simple square into 2 triangles", "[integration][bp
 }
 
 TEST_CASE("BPA reconstructs cube (cube.xyz) with exactly 12 triangles", "[integration][regression]") {
-    FileParser parser;
     PointCloud points;
     
-    REQUIRE_NOTHROW(points = parser.readXYZ("cube.xyz"));
+    std::string cube_path = std::string(TEST_DATA_DIR) + "/cube.xyz";
+    REQUIRE_NOTHROW(points = FileParser::readXYZ(cube_path));
     REQUIRE(points.size() > 0);
 
     PointCloud unique_points = Preprocessor::getUniquePoints(points, 1e-6);
@@ -138,10 +138,10 @@ TEST_CASE("BPA reconstructs cube (cube.xyz) with exactly 12 triangles", "[integr
 
 
 TEST_CASE("BPA reconstructs sphere.xyz with exact expected triangle count", "[integration][regression]") {
-    FileParser parser;
     PointCloud points;
     
-    REQUIRE_NOTHROW(points = parser.readXYZ("sphere.xyz"));
+    std::string sphere_path = std::string(TEST_DATA_DIR) + "/sphere.xyz";
+    REQUIRE_NOTHROW(points = FileParser::readXYZ(sphere_path));
     REQUIRE(points.size() > 0);
 
     PointCloud unique_points = Preprocessor::getUniquePoints(points, 1e-6);

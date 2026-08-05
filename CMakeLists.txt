@@ -36,10 +36,8 @@ add_library(triangulator_core STATIC
     src/ball_pivoting.cpp
 )
 
-find_package(OpenMP)
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(triangulator_core PRIVATE OpenMP::OpenMP_CXX)
-endif()
+find_package(OpenMP REQUIRED)
+target_link_libraries(triangulator_core PUBLIC OpenMP::OpenMP_CXX)
 
 target_link_libraries(triangulator_core PUBLIC nlohmann_json::nlohmann_json)
 
@@ -59,6 +57,10 @@ add_executable(test_runner
 target_link_libraries(test_runner PRIVATE 
     Catch2::Catch2WithMain 
     triangulator_core
+)
+
+target_compile_definitions(test_runner PRIVATE
+    TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data"
 )
 
 add_test(NAME AllTests COMMAND test_runner)

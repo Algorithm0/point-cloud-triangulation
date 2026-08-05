@@ -49,8 +49,25 @@
 - Компилятор C++ с поддержкой **C++20** (GCC 11+, Clang 13+, MSVC 2019+)
 - **CMake** версии 3.14 или выше
 - **Git**
+- **OpenMP** (включен в GCC/Clang, опционален в MSVC)
+
 
 Все внешние зависимости (`nlohmann/json`, `cxxopts`, `Catch2`) загружаются автоматически через `FetchContent` при первом запуске CMake. Интернет-соединение требуется только при первой сборке.
+
+### Команды для сборки из командной строки
+
+Для сборки необходимо выполнить следующие команды в терминале, находясь в корневой папке проекта:
+
+```
+# 1. Создать папку для сборки и перейдите в неё
+mkdir build && cd build
+
+# 2. Сконфигурировать проект с помощью CMake
+cmake ..
+
+# 3. Соберать проект (флаг -j 8 использует 8 потоков для ускорения сборки)
+cmake --build . -j 8
+```
 
 ## Запуск и аргументы командной строки
 
@@ -65,10 +82,10 @@
 
 ## Команды для запуска
 ```
-.\build\triangulator.exe -i sphere.xyz -o sphere-output.txt
-.\build\triangulator.exe -i sphere-nodes.xyz -o sphere-nodes-output.txt
-.\build\triangulator.exe -i saddle-nodes.xyz -o saddle-nodes-output.txt
-.\build\triangulator.exe -i barrel-nodes.xyz -o barrel-nodes-output.txt
+.\build\triangulator.exe -i data/sphere.xyz -o sphere-output.txt
+.\build\triangulator.exe -i data/sphere-nodes.xyz -o sphere-nodes-output.txt
+.\build\triangulator.exe -i data/saddle-nodes.xyz -o saddle-nodes-output.txt
+.\build\triangulator.exe -i data/barrel-nodes.xyz -o barrel-nodes-output.txt
 ```
 
 ## Тестирование

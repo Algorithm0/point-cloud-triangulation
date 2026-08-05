@@ -1,7 +1,6 @@
 #pragma once
 #include "geometry.h"
 
-class Preprocessor {
-public:
-    static PointCloud getUniquePoints(const PointCloud& points, double tolerance);
+namespace Preprocessor {
+    PointCloud getUniquePoints(const PointCloud& points, double tolerance);
 };

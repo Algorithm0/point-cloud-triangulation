@@ -88,7 +88,6 @@ TEST_CASE("computeEigenVectors3x3 solves diagonal matrix correctly", "[eigen33]"
 }
 
 TEST_CASE("FileParser correctly parses XYZ line", "[file_parser]") {
-    FileParser parser;
     
     std::string test_file = "temp_test.xyz";
     std::ofstream out(test_file);
@@ -98,7 +97,7 @@ TEST_CASE("FileParser correctly parses XYZ line", "[file_parser]") {
     out << "2, 3.0, 4.0, 5.0\n";
     out.close();
 
-    PointCloud points = parser.readXYZ(test_file);
+    PointCloud points = FileParser::readXYZ(test_file);
 
     REQUIRE(points.size() == 2);
     REQUIRE(points[0].node_id == 1);

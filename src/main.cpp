@@ -11,10 +11,10 @@
 #include "cli_args.h"
 
 // commands to run:
-// .\build\triangulator.exe -i sphere.xyz -o sphere-output.txt
-// .\build\triangulator.exe -i sphere-nodes.xyz -o sphere-nodes-output.txt
-// .\build\triangulator.exe -i saddle-nodes.xyz -o saddle-nodes-output.txt
-// .\build\triangulator.exe -i barrel-nodes.xyz -o barrel-nodes-output.txt
+// .\build\triangulator.exe -i data/sphere.xyz -o sphere-output.txt
+// .\build\triangulator.exe -i data/sphere-nodes.xyz -o sphere-nodes-output.txt
+// .\build\triangulator.exe -i data/saddle-nodes.xyz -o saddle-nodes-output.txt
+// .\build\triangulator.exe -i data/barrel-nodes.xyz -o barrel-nodes-output.txt
 
 int main(int argc, char* argv[]) {
     try {
@@ -22,8 +22,7 @@ int main(int argc, char* argv[]) {
         auto start_time = std::chrono::high_resolution_clock::now();
         Config config = Config::loadFromFile("args.config.json");
 
-        FileParser parser;
-        PointCloud all_points = parser.readXYZ(args.input_file);
+        PointCloud all_points = FileParser::readXYZ(args.input_file);
 
         PointCloud unique_points = Preprocessor::getUniquePoints(all_points, config.algorithm.duplicate_tolerance);
 
@@ -40,7 +39,7 @@ int main(int argc, char* argv[]) {
             config.algorithm.max_retries
         );
 
-        parser.writeMesh(args.output_file, all_points, unique_points, mesh);
+         FileParser::writeMesh(args.output_file, all_points, unique_points, mesh);
 
         if (config.output.export_obj) {
             std::string obj_file = args.output_file;
@@ -50,9 +49,7 @@ int main(int argc, char* argv[]) {
             } else {
                 obj_file += ".obj";
             }
-            parser.writeOBJ(obj_file, unique_points, mesh);
-        }if (config.output.export_obj) {
-            parser.writeOBJ("output.obj", unique_points, mesh);
+             FileParser::writeOBJ(obj_file, unique_points, mesh);
         }
 
         auto end_time = std::chrono::high_resolution_clock::now();

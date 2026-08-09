@@ -4,6 +4,8 @@
 #include <cmath>
 #include <iostream>
 #include <omp.h>
+#include <ranges>
+#include <iterator>
 
 namespace NormalEstimator {
     void estimate(PointCloud& points, const KDTree& kd_tree,
@@ -80,9 +82,8 @@ namespace NormalEstimator {
 
                 computeEigenVectors3x3(C, eigenvalues, eigenvectors); 
 
-                int minIdx = 0;
-                if (eigenvalues[1] < eigenvalues[minIdx]) minIdx = 1;
-                if (eigenvalues[2] < eigenvalues[minIdx]) minIdx = 2;
+                const auto minIt = std::ranges::min_element(eigenvalues);
+                const int minIdx = static_cast<int>(minIt - std::begin(eigenvalues));
 
                 Vector3 normal(
                     eigenvectors[0][minIdx],

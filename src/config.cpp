@@ -2,10 +2,14 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <iostream>
+#include <concepts>
 
 using json = nlohmann::json;
 
 template <typename T>
+concept ConfigValue = std::integral<T> || std::floating_point<T>;
+
+template <ConfigValue T>
 void load_or_keep(T& value, const json& obj, const std::string& key) {
     if (obj.contains(key)) {
         try {

@@ -1,4 +1,6 @@
 #include "kd_tree.h"
+#include <ranges>
+#include <numeric>
 
 void KDTree::build(const PointCloud& points) {
     points_ = &points;
@@ -6,9 +8,7 @@ void KDTree::build(const PointCloud& points) {
     if (points.empty()) return;
 
     std::vector<size_t> indices(points.size());
-    for (size_t i = 0; i < points.size(); ++i) {
-        indices[i] = i;
-    }
+    std::iota(indices.begin(), indices.end(), 0);
     buildRecursive(indices, 0);
 }
 
@@ -20,14 +20,20 @@ size_t KDTree::buildRecursive(std::vector<size_t>& indices, int depth) {
     int axis = depth % 3;
     size_t median_idx = indices.size() / 2;
 
-    std::nth_element(indices.begin(), indices.begin() + median_idx, indices.end(),
-        [this, axis](size_t a, size_t b) {
-            const auto& pa = (*points_)[a];
-            const auto& pb = (*points_)[b];
-            if (axis == 0) return pa.x < pb.x;
-            if (axis == 1) return pa.y < pb.y;
-            return pa.z < pb.z;
-        });
+    auto coordinate = [this, axis](size_t index) {
+        const auto& p = (*points_)[index];
+
+        if (axis == 0) return p.x;
+        if (axis == 1) return p.y;
+        return p.z;
+    };
+
+    std::ranges::nth_element(
+        indices, 
+        indices.begin() + median_idx, 
+        std::ranges::less{}, 
+        coordinate
+    );
 
     size_t node_idx = nodes_.size();
     Node node;
@@ -68,7 +74,7 @@ void KDTree::searchKNN(size_t point_index, int k, std::vector<size_t>& out_indic
         best_neighbors.pop();
     }
     
-    std::reverse(out_indices.begin(), out_indices.end());
+    std::ranges::reverse(out_indices);
 }
 
 void KDTree::searchRecursive(
@@ -84,7 +90,7 @@ void KDTree::searchRecursive(
     if (node.point_idx != ignore_index) {
         double dist_sq = distanceSquared(target, p);
 
-        if (best_neighbors.size() < (size_t)k) {
+        if (best_neighbors.size() < static_cast<size_t>(k)) {
             best_neighbors.push({dist_sq, node.point_idx});
         } else if (dist_sq < best_neighbors.top().first) {
             best_neighbors.pop();

@@ -4,6 +4,7 @@
 #include "kd_tree.h"
 #include <vector>
 #include <array>
+#include <ranges>
 
 namespace BallPivoting {
     /// @brief Выполняет реконструкцию поверхности методом Ball Pivoting Algorithm.
@@ -29,8 +30,7 @@ namespace BallPivoting {
 }
 
 inline std::array<size_t, 3> makeCanonicalKey(size_t a, size_t b, size_t c) {
-    if (a > b) std::swap(a, b);
-    if (b > c) std::swap(b, c);
-    if (a > b) std::swap(a, b);
-    return {a, b, c};
+    std::array<size_t, 3> key{a, b, c};
+    std::ranges::sort(key);
+    return key;
 }

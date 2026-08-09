@@ -20,7 +20,8 @@ int main(int argc, char* argv[]) {
     try {
         auto args = CliArgs::parse(argc, argv);
         auto start_time = std::chrono::high_resolution_clock::now();
-        Config config = Config::loadFromFile("args.config.json");
+
+        Config config = Config::loadFromFile(args.config_file);
 
         PointCloud all_points = FileParser::readXYZ(args.input_file);
 

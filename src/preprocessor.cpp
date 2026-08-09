@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 #include <numeric>
+#include <ranges>
 
 namespace Preprocessor {
     PointCloud getUniquePoints(const PointCloud& points, double tolerance) {
@@ -13,12 +14,11 @@ namespace Preprocessor {
         std::vector<size_t> indices(points.size());
         std::iota(indices.begin(), indices.end(), size_t{0});
 
-        std::sort(indices.begin(), indices.end(), [&](size_t a, size_t b) {
+        std::ranges::sort(indices, [&](size_t a, size_t b) {
             if (points[a].x != points[b].x) return points[a].x < points[b].x;
             if (points[a].y != points[b].y) return points[a].y < points[b].y;
             return points[a].z < points[b].z;
         });
-
         std::vector<bool> is_duplicate(points.size(), false);
         const double tolerance_sq = tolerance * tolerance;
 
@@ -46,12 +46,15 @@ namespace Preprocessor {
             }
         }
 
+        auto unique_indices = indices
+            | std::views::filter([&](size_t i){
+                return !is_duplicate[i];
+            });
+
         PointCloud unique_points;
         unique_points.reserve(points.size());
-        for (size_t i = 0; i < points.size(); ++i) {
-            if (!is_duplicate[i]) {
-                unique_points.push_back(points[i]);
-            }
+        for (size_t i : unique_indices) {
+            unique_points.push_back(points[i]);
         }
 
         size_t removed_count = points.size() - unique_points.size();

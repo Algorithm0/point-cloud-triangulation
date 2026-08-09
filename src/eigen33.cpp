@@ -1,4 +1,3 @@
-#define _USE_MATH_DEFINES
 #include "eigen33.h"
 #include <cmath>
 #include <algorithm>

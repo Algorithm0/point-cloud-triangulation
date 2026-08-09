@@ -10,6 +10,7 @@
 #include <limits>
 #include <numbers>
 #include <deque>
+#include <ranges>
 
 namespace {
     constexpr double EPS_COLLINEAR = 1e-12;
@@ -95,9 +96,9 @@ namespace {
             kd_tree.searchKNN(idx, k, neighbors);
             double local = 0;
 
-            for (auto id : neighbors) {
+            std::ranges::for_each(neighbors, [&](size_t id){
                 local += distance(points[idx], points[id]);
-            }
+            });
 
             total_length += local / neighbors.size();
             count++;
@@ -366,7 +367,7 @@ namespace {
         const Point& p1 = points[edge.v1];
         const Point& p2 = points[edge.v2];
 
-        Vector3 mid_pt((p1.x + p2.x) * 0.5, (p1.y + p2.y) * 0.5, (p1.z + p2.z) * 0.5);
+        Vector3 mid_pt(std::midpoint(p1.x, p2.x), std::midpoint(p1.y, p2.y), std::midpoint(p1.z, p2.z));
         
         candidates_buffer.clear();
         kd_tree.radiusSearch(mid_pt, 2.0 * radius + EPS_EMPTY, INVALID_INDEX, candidates_buffer);
@@ -383,8 +384,12 @@ namespace {
         Vector3 edge_vec = Vector3(p2.x, p2.y, p2.z) - Vector3(p1.x, p1.y, p1.z);
         Vector3 e = normalize(edge_vec);
 
-        for (size_t v3 : candidates_buffer) {
-            if (v3 == edge.v1 || v3 == edge.v2 || v3 == edge.opposite_vertex) continue;
+        auto valid_candidates = candidates_buffer
+            | std::views::filter([&](size_t v3) {
+                return v3 != edge.v1 && v3 != edge.v2 && v3 != edge.opposite_vertex;
+            });
+
+        for (size_t v3 : valid_candidates) {
 
             const Point& p3_pt = points[v3];
             if (!isCompatible(p1, p2, p3_pt, max_edge_length)) continue;
@@ -409,7 +414,7 @@ namespace {
             }
 
             auto key = makeCanonicalKey(edge.v1, edge.v2, v3);
-            if (created_triangles.count(key)) continue;
+            if (created_triangles.contains(key)) continue;
 
             if (get_usage(edge.v1, edge.v2) >= 2 || 
                 get_usage(edge.v2, v3) >= 2 || 
@@ -537,7 +542,7 @@ namespace BallPivoting {
             Edge current_edge = front.front();
             front.pop_front();
 
-            if (front_set.find(current_edge) == front_set.end()) continue;
+            if (!front_set.contains(current_edge)) continue;
 
             Vector3 best_center;
             size_t v3 = findThirdPoint(points, kd_tree, current_edge, radius, max_edge_length, 

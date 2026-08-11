@@ -14,7 +14,7 @@ void load_or_keep(T& value, const json& obj, const std::string& key) {
     if (obj.contains(key)) {
         try {
             value = obj[key].get<T>();
-        } catch (const json::exception& e) {
+        } catch (const json::exception&) {
             std::cerr << "Warning: Invalid value for '" << key 
                 << "' in config. Keeping default: " << value << std::endl;
         }

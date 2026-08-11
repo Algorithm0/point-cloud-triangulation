@@ -35,7 +35,7 @@ namespace NormalEstimator {
             neighbors.reserve(k);
 
             #pragma omp for schedule(dynamic)
-            for (size_t i = 0; i < points.size(); ++i) {
+            for (int i = 0; i < static_cast<int>(points.size()); ++i) {
                 neighbors.clear();
                 
                 kd_tree.searchKNN(i, k, neighbors);

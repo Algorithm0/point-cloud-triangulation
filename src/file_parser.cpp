@@ -114,9 +114,9 @@ namespace FileParser {
         file << "* Elements\n";
         
         for (size_t i = 0; i < triangles.size(); i++) {
-            int n1 = unique_points[triangles[i].v1].node_id;
-            int n2 = unique_points[triangles[i].v2].node_id;
-            int n3 = unique_points[triangles[i].v3].node_id;
+            size_t n1 = unique_points[triangles[i].v1].node_id;
+            size_t n2 = unique_points[triangles[i].v2].node_id;
+            size_t n3 = unique_points[triangles[i].v3].node_id;
             
             file << (i + 1) << ", "
                 << n1 << ", "

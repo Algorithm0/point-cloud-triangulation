@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.14)
 project(PointCloudTriangulation VERSION 1.0.0 LANGUAGES CXX)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR})
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -26,20 +30,10 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(json cxxopts Catch2)
 
-add_library(triangulator_core STATIC
-    src/file_parser.cpp
-    src/config.cpp
-    src/preprocessor.cpp
-    src/eigen33.cpp
-    src/kd_tree.cpp 
-    src/normal_estimator.cpp
-    src/ball_pivoting.cpp
-)
-
 find_package(OpenMP REQUIRED)
-target_link_libraries(triangulator_core PUBLIC OpenMP::OpenMP_CXX)
 
-target_link_libraries(triangulator_core PUBLIC nlohmann_json::nlohmann_json)
+add_subdirectory(src)
+add_subdirectory(tests)
 
 add_executable(triangulator src/main.cpp)
 
@@ -47,20 +41,3 @@ target_link_libraries(triangulator PRIVATE
     triangulator_core 
     cxxopts::cxxopts
 )
-
-enable_testing()
-add_executable(test_runner 
-    tests/unit_tests.cpp 
-    tests/integration_tests.cpp
-)
-
-target_link_libraries(test_runner PRIVATE 
-    Catch2::Catch2WithMain 
-    triangulator_core
-)
-
-target_compile_definitions(test_runner PRIVATE
-    TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data"
-)
-
-add_test(NAME AllTests COMMAND test_runner)
